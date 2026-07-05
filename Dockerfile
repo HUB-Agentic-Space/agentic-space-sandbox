@@ -1,8 +1,14 @@
 FROM python:3.12-slim AS base
 
 LABEL maintainer="Carlos Delfino <consultoria@carlosdelfino.eti.br"
-LABEL description="AgenticSpace Sandbox - Web Scraping, Data Extraction, Feed Search & RSS Syndication CLI toolkit"
-LABEL version="1.0.0"
+LABEL description="Agentic Space Sandbox - Web Scraping, Data Extraction, Feed Search & RSS Syndication CLI toolkit"
+LABEL version="1.2.0"
+
+LABEL org.opencontainers.image.title="Agentic Space Sandbox" \
+    org.opencontainers.image.authors="Carlos Delfino <agenticspace@carlosdelfino.eti.br>" \
+    org.opencontainers.image.description="AgenticSpace Sandbox with web scraping tools" \
+    org.opencontainers.image.source="https://hub.docker.com/r/carlosdelfino/agentic-space-sandbox"
+
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -64,6 +70,8 @@ WORKDIR /workspace
 
 COPY scripts/ /opt/agentic-scripts/
 RUN chmod +x /opt/agentic-scripts/* 2>/dev/null || true
+
+COPY INSTRUCTIONS.md /opt/INSTRUCTIONS.md
 
 ENV PATH="/opt/agentic-scripts:${PATH}"
 

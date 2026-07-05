@@ -30,6 +30,12 @@ docker pull carlosdelfino/agenticspace-sandbox:latest
 | `crawl <url> [max_pages]` | Crawl site with Scrapy |
 | `screenshot <url> [output.png]` | Headless screenshot with Playwright |
 | `api-fetch <url> [jq_filter]` | Fetch JSON API, filter with jq |
+| `search-web <query>` | Search the web and get full content |
+| `map <url>` | Discover all URLs on a website |
+| `batch-scrape <urls_file>` | Scrape multiple URLs at once |
+| `markdown-scrape <url>` | Get LLM-ready markdown from any website |
+| `interact <url> --prompt <cmd>` | Interact with webpage using browser automation |
+| `deep-research <query>` | Perform comprehensive research on a topic |
 
 ### Python Libraries
 - **Scrapy** — large-scale crawling framework
@@ -65,6 +71,18 @@ docker run --rm -v $(pwd):/workspace carlosdelfino/agenticspace-sandbox screensh
 
 # Fetch JSON API with jq filter
 docker run --rm carlosdelfino/agenticspace-sandbox api-fetch https://api.github.com/repos/HUB-Agentic-Space/agentic-space-sandbox '.full_name'
+
+# Search the web
+docker run --rm carlosdelfino/agenticspace-sandbox search-web "python web scraping" --limit 5
+
+# Map website URLs
+docker run --rm carlosdelfino/agenticspace-sandbox map https://example.com --search pricing
+
+# Get LLM-ready markdown
+docker run --rm carlosdelfino/agenticspace-sandbox markdown-scrape https://example.com --only-main-content
+
+# Deep research on a topic
+docker run --rm carlosdelfino/agenticspace-sandbox deep-research "AI trends 2024" --max-pages 5
 
 # Use native tools directly
 docker run --rm carlosdelfino/agenticspace-sandbox curl -s https://example.com | htmlq 'title' --text
