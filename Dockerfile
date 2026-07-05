@@ -63,7 +63,7 @@ RUN playwright install --with-deps chromium \
 WORKDIR /workspace
 
 COPY scripts/ /opt/agentic-scripts/
-RUN chmod +x /opt/agentic-scripts/*.py /opt/agentic-scripts/*.sh 2>/dev/null || true
+RUN chmod +x /opt/agentic-scripts/* 2>/dev/null || true
 
 ENV PATH="/opt/agentic-scripts:${PATH}"
 
