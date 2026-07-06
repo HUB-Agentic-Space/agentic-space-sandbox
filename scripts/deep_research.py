@@ -7,10 +7,34 @@ Usage:
 import argparse
 import json
 import sys
-from urllib.parse import quote
+from urllib.parse import quote, parse_qs, urlparse, unquote
 import requests
 from bs4 import BeautifulSoup
 from html2text import HTML2Text
+
+
+def resolve_ddg_url(raw_url):
+    """Resolve a DuckDuckGo redirect URL to the actual target URL.
+
+    DuckDuckGo returns links like:
+      //duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com&rut=...
+    This function extracts and returns the decoded 'uddg' value.
+    Falls back to prepending 'https:' if the URL is schemeless.
+    """
+    if not raw_url:
+        return ""
+
+    url = raw_url
+    if url.startswith("//"):
+        url = "https:" + url
+
+    parsed = urlparse(url)
+    if "duckduckgo.com" in (parsed.hostname or "") and parsed.query:
+        qs = parse_qs(parsed.query)
+        if "uddg" in qs:
+            return unquote(qs["uddg"][0])
+
+    return url
 
 
 def search_duckduckgo(query, limit=10):
@@ -30,9 +54,11 @@ def search_duckduckgo(query, limit=10):
         snippet_elem = result.select_one(".result__snippet")
         
         if title_elem:
+            raw_url = title_elem.get("href", "")
+            resolved_url = resolve_ddg_url(raw_url)
             results.append({
                 "title": title_elem.get_text(strip=True),
-                "url": title_elem.get("href", ""),
+                "url": resolved_url,
                 "snippet": snippet_elem.get_text(strip=True) if snippet_elem else ""
             })
     

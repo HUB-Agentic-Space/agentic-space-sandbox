@@ -48,6 +48,27 @@ docker pull carlosdelfino/agenticspace-sandbox:latest
 | `interact <url> --prompt <cmd>` | Interact with webpage using browser automation |
 | `deep-research <query>` | Perform comprehensive research on a topic |
 
+### RAG — Índice Web Vivo (Living Web Index)
+
+| Comando | Descrição |
+|---------|-------------|
+| `rag-index <url>` | Raspa e indexa uma URL (gera embeddings se configurado) |
+| `rag-search <query>` | Busca semântica (com embeddings) ou por palavras-chave |
+| `rag-update [url] [--all]` | Detecta mudanças de conteúdo e re-indexa |
+| `rag-list` | Lista todos os sites indexados |
+| `rag-status` | Estatísticas e saúde do índice RAG |
+| `rag-remove <url>` | Remove um site do índice |
+
+**Configuração de embeddings:** crie `/workspace/.agentispace/credentials.json`:
+```json
+{
+  "embed_api_key": "sk-...",
+  "embed_model": "text-embedding-3-small",
+  "embed_api_base": "https://api.openai.com/v1"
+}
+```
+Sem embeddings configurados, o sistema opera apenas com scraping e busca por palavra-chave.
+
 ### Bibliotecas Python
 - **Scrapy** — framework de crawling em larga escala
 - **Beautiful Soup** + **lxml** — parsing HTML
@@ -58,6 +79,7 @@ docker pull carlosdelfino/agenticspace-sandbox:latest
 - **httpx** / **aiohttp** — clientes HTTP assíncronos
 - **selectolax** — parsing HTML rápido
 - **pyquery** — sintaxe jQuery para Python
+- **numpy** — cálculos de similaridade vetorial (cosine similarity para RAG)
 
 ## 🚀 Exemplos de Uso
 
@@ -95,6 +117,21 @@ docker run --rm carlosdelfino/agenticspace-sandbox markdown-scrape https://examp
 # Deep research on a topic
 docker run --rm carlosdelfino/agenticspace-sandbox deep-research "AI trends 2024" --max-pages 5
 
+# RAG: index a website (persist with volume mount)
+docker run --rm -v $(pwd):/workspace carlosdelfino/agenticspace-sandbox rag-index https://example.com
+
+# RAG: search the indexed content
+docker run --rm -v $(pwd):/workspace carlosdelfino/agenticspace-sandbox rag-search "python tutorial"
+
+# RAG: check for content updates and re-index changed sites
+docker run --rm -v $(pwd):/workspace carlosdelfino/agenticspace-sandbox rag-update --all
+
+# RAG: list all indexed sites
+docker run --rm -v $(pwd):/workspace carlosdelfino/agenticspace-sandbox rag-list
+
+# RAG: show index statistics
+docker run --rm -v $(pwd):/workspace carlosdelfino/agenticspace-sandbox rag-status
+
 # Use native tools directly
 docker run --rm carlosdelfino/agenticspace-sandbox curl -s https://example.com | htmlq 'title' --text
 docker run --rm carlosdelfino/agenticspace-sandbox curl -s https://api.github.com | jq '.current_user_url'
@@ -115,6 +152,26 @@ docker build -t carlosdelfino/agenticspace-sandbox:latest .
 - **Extração de Dados**: JSON-LD, OpenGraph, feeds RSS/Atom
 - **CLI Tools**: curl, wget, jq, htmlq, xidel
 - **Integração**: Pronto para usar no Agentic Space
+
+### Ferramentas Extras (EXTRA_TOOLS.md)
+
+A documentação detalhada de todas as ferramentas e comandos disponíveis não é mais embarcada na imagem Docker. Para obter a lista completa de ferramentas e instruções de uso, o agente deve buscar o arquivo **EXTRA_TOOLS.md** em:
+
+```
+https://app.agenticspace.rapport.tec.br/agents/EXTRA_TOOLS.md
+```
+
+Este arquivo deve ser misturado (merged) com o arquivo **TOOLS.md** do Agentic Space para fornecer ao agente a visão completa de todas as ferramentas disponíveis — tanto as nativas do Agentic Space quanto as extras fornecidas por esta imagem Sandbox.
+
+**Exemplo de uso pelo agente:**
+```bash
+curl -s https://app.agenticspace.rapport.tec.br/agents/EXTRA_TOOLS.md
+```
+
+O arquivo também está disponível para agentes do sistema em:
+```
+https://app.agenticspace.rapport.tec.br/agents/system/EXTRA_TOOLS.md
+```
 
 ## 🤝 Contribuindo
 

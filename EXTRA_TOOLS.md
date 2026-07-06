@@ -218,6 +218,115 @@ deep-research <query> [--max-pages N] [--output file] [--format json|markdown]
 
 **Help:** `deep-research --help`
 
+## RAG Commands — Living Web Index
+
+The RAG subsystem turns scraped web content into a searchable, persistent index
+stored in `/workspace/.agentispace/`. It uses SQLite for metadata and content
+storage, and optionally generates vector embeddings for semantic search.
+
+### Configuration
+
+Create `/workspace/.agentispace/credentials.json` to enable embeddings:
+
+```json
+{
+  "embed_api_key": "sk-...",
+  "embed_model": "text-embedding-3-small",
+  "embed_api_base": "https://api.openai.com/v1"
+}
+```
+
+- `embed_api_key` — API key for an OpenAI-compatible embeddings endpoint.
+- `embed_model` — Model name (e.g. `text-embedding-3-small`).
+- `embed_api_base` — Base URL (defaults to `https://api.openai.com/v1`).
+
+If credentials are not configured, the system attempts to use the AgenticSpace
+RAG server (not yet available). If neither is available, only scraping and
+keyword search are performed — no embeddings are generated.
+
+### Storage
+
+All data is stored under `/workspace/.agentispace/`:
+
+| File | Purpose |
+|------|---------|
+| `rag_index.db` | SQLite database with sites, chunks, and embeddings |
+| `credentials.json` | Embedding API configuration (user-provided) |
+
+### rag-index
+Scrape a URL, store its content in SQLite, chunk it, and optionally generate
+embeddings for semantic search.
+```bash
+rag-index <url> [--only-main-content] [--timeout seconds] [--force]
+          [--chunk-size N] [--chunk-overlap N] [--format json|text]
+```
+**Examples:**
+- `rag-index https://example.com`
+- `rag-index https://example.com --only-main-content --format json`
+- `rag-index https://example.com --force` (re-index even if unchanged)
+- `rag-index https://blog.example.com/post --chunk-size 256 --chunk-overlap 32`
+
+**Help:** `rag-index --help`
+
+### rag-search
+Search the RAG index. Uses cosine similarity over embeddings when available,
+otherwise falls back to TF-IDF-like keyword matching.
+```bash
+rag-search <query> [--limit N] [--threshold F] [--format json|text] [--no-embeddings]
+```
+**Examples:**
+- `rag-search "python web scraping"`
+- `rag-search "machine learning" --limit 10 --format json`
+- `rag-search "docker tutorial" --no-embeddings` (force keyword search)
+
+**Help:** `rag-search --help`
+
+### rag-update
+Check indexed sites for content changes by comparing content hashes. Re-indexes
+sites whose content has changed.
+```bash
+rag-update [url] [--all] [--timeout seconds] [--format json|text]
+```
+**Examples:**
+- `rag-update https://example.com` (check single site)
+- `rag-update --all` (check all indexed sites)
+- `rag-update --format json`
+
+**Help:** `rag-update --help`
+
+### rag-list
+List all sites currently in the RAG index.
+```bash
+rag-list [--format json|text] [--output file]
+```
+**Examples:**
+- `rag-list`
+- `rag-list --format json --output sites.json`
+
+**Help:** `rag-list --help`
+
+### rag-status
+Show statistics and health of the RAG index, including embedding configuration.
+```bash
+rag-status [--format json|text]
+```
+**Examples:**
+- `rag-status`
+- `rag-status --format json`
+
+**Help:** `rag-status --help`
+
+### rag-remove
+Remove a site and all its chunks from the RAG index.
+```bash
+rag-remove <url> [--format json|text]
+```
+**Examples:**
+- `rag-remove https://example.com`
+- `rag-remove https://example.com --format json`
+
+**Help:** `rag-remove --help`
+
 ## System Tools
 - **curl** - Command-line HTTP client
 - **wget** - Command-line HTTP downloader
@@ -253,6 +362,12 @@ batch-scrape --help
 markdown-scrape --help
 interact --help
 deep-research --help
+rag-index --help
+rag-search --help
+rag-update --help
+rag-list --help
+rag-status --help
+rag-remove --help
 ```
 
 ## Environment Variables
@@ -265,6 +380,8 @@ deep-research --help
 - `PGID=1000` - Group ID for unprivileged user (LinuxServer images)
 - `TZ=America/Fortaleza` - Timezone (LinuxServer images)
 - `OPENCLAW_CLI=1` - Enable CLI mode (bypasses LinuxServer init)
+- `WORKSPACE_DIR=/workspace` - Workspace directory (RAG data stored in $WORKSPACE_DIR/.agentispace/)
+- `AGENTICSPACE_RAG_URL` - URL for the AgenticSpace RAG server (future, not yet implemented)
 
 ## Working Directory
 Default working directory: `/workspace`
@@ -276,6 +393,9 @@ Default working directory: `/workspace`
 4. For large-scale crawling, use the `--follow` flag judiciously
 5. When parsing feeds, consider using `--limit` to avoid processing huge feeds
 6. Use `--output` parameter to save results to files for further processing
+7. For RAG: mount `/workspace` as a volume to persist the index across container runs
+8. For RAG: use `rag-update --all` periodically to keep the index fresh
+9. For RAG: configure `credentials.json` with embeddings to enable semantic search
 
 ## Error Handling
 All scripts return appropriate exit codes:

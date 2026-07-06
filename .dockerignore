@@ -1,4 +1,3 @@
 .git
 *.md
-!INSTRUCTIONS.md
 .gitignore
